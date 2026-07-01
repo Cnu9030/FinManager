@@ -1,0 +1,28 @@
+# Environment configuration files
+.env
+.env.*
+
+# Python runtime caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing profiles
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE system configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.usrfiles
