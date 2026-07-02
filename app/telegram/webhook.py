@@ -161,13 +161,15 @@ async def run_conversation_workflow(chat_id: int, text: str, user_name: Optional
             messages = final_state.get("messages", []) or []
 
         for msg in reversed(messages):
-            message_type = getattr(msg, "type", None) or getattr(msg, "role", None)
+            if isinstance(msg, dict):
+                message_type = msg.get("type") or msg.get("role")
+                content = msg.get("content")
+            else:
+                message_type = getattr(msg, "type", None) or getattr(msg, "role", None)
+                content = getattr(msg, "content", None)
+
             if message_type != "ai" and message_type != "assistant":
                 continue
-
-            content = getattr(msg, "content", None)
-            if content is None and isinstance(msg, dict):
-                content = msg.get("content")
 
             if isinstance(content, list):
                 text_parts = []
