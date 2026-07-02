@@ -154,14 +154,36 @@ async def run_conversation_workflow(chat_id: int, text: str, user_name: Optional
         # Invoke LangGraph
         final_state = await compiled_graph.ainvoke(state_input, config)
         
-        # Extract last assistant message
-        response_text = "Transaction processed successfully."
-        messages = final_state.get("messages", [])
+        # Extract the last natural-language AI response from the graph output
+        response_text = "I received your request, but I couldn't generate a readable reply. Please try again."
+        messages = []
+        if isinstance(final_state, dict):
+            messages = final_state.get("messages", []) or []
+
         for msg in reversed(messages):
-            if msg.get("role") == "assistant":
-                response_text = msg.get("content", response_text)
+            message_type = getattr(msg, "type", None) or getattr(msg, "role", None)
+            if message_type != "ai" and message_type != "assistant":
+                continue
+
+            content = getattr(msg, "content", None)
+            if content is None and isinstance(msg, dict):
+                content = msg.get("content")
+
+            if isinstance(content, list):
+                text_parts = []
+                for part in content:
+                    if isinstance(part, str):
+                        text_parts.append(part)
+                    elif isinstance(part, dict):
+                        part_text = part.get("text") or part.get("content")
+                        if part_text:
+                            text_parts.append(str(part_text))
+                content = "".join(text_parts).strip()
+
+            if isinstance(content, str) and content.strip():
+                response_text = content.strip()
                 break
-                
+
         # Send reply
         await send_telegram_response(chat_id, response_text)
     except Exception as app_error:
@@ -181,13 +203,16 @@ async def run_conversation_workflow(chat_id: int, text: str, user_name: Optional
         await send_telegram_response(chat_id, user_notification)
         
         # Send detailed crash report to Gmail for investigation
-        send_gmail_alert(
-            user_name=user_name,
-            chat_id=chat_id,
-            user_message=text,
-            error_summary=error_summary,
-            full_traceback=full_traceback
-        )
+        try:
+            send_gmail_alert(
+                user_name=user_name,
+                chat_id=chat_id,
+                user_message=text,
+                error_summary=error_summary,
+                full_traceback=full_traceback
+            )
+        except Exception as email_err:
+            logger.error(f"CRITICAL: Gmail alert system failed to send: {email_err}", exc_info=True)
 
 
 @router.post("/webhook")
