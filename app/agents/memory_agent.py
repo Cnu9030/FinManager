@@ -9,15 +9,16 @@ logger = logging.getLogger("memory_agent")
 def generate_embedding(text: str) -> List[float]:
     """
     Generates a 768-dimensional vector embedding for the input text
-    using Gemini's text-embedding-004 model.
+    using Gemini's gemini-embedding-001 model with explicit output dimensionality.
     """
     if not text:
         return []
     try:
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
         response = client.models.embed_content(
-            model="text-embedding-004",
-            contents=text
+            model="gemini-embedding-001",
+            contents=text,
+            config={"output_dimensionality": 768}
         )
         if response.embeddings:
             return response.embeddings[0].values

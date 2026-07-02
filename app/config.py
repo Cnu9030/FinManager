@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     TELEGRAM_BOT_TOKEN: str
     EXPECTED_TELEGRAM_USER_ID: int
+    GMAIL_USER: str = ""
+    GMAIL_APP_PASSWORD: str = ""
 
 # Instantiated settings object to be imported across the application
 settings = Settings()
