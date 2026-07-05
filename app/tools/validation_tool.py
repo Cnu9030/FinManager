@@ -1,5 +1,26 @@
 from decimal import Decimal
+import logging
+
 from app.core.db import supabase
+
+logger = logging.getLogger("validation_tool")
+
+
+def _create_self_person_record() -> str:
+    """Create the default self profile and return its UUID."""
+    response = supabase.table("people").insert({
+        "name": "Self",
+        "is_self": True,
+    }).execute()
+
+    if response.data:
+        return response.data[0]["id"]
+
+    fallback_response = supabase.table("people").select("id").eq("is_self", True).execute()
+    if fallback_response.data:
+        return fallback_response.data[0]["id"]
+
+    raise RuntimeError("Failed to initialize default self person record.")
 
 def get_self_person_id() -> str:
     """
@@ -7,7 +28,8 @@ def get_self_person_id() -> str:
     """
     response = supabase.table("people").select("id").eq("is_self", True).execute()
     if not response.data:
-        raise ValueError("No self person configuration found in database.")
+        logger.warning("No self person configuration found; creating default self profile.")
+        return _create_self_person_record()
     return response.data[0]["id"]
 
 def check_source_exists(source_id: str) -> bool:

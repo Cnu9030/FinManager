@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
     GEMINI_API_KEY: str
+    GROQ_API_KEY: str = ""
     TELEGRAM_BOT_TOKEN: str
     EXPECTED_TELEGRAM_USER_ID: int
     GMAIL_USER: str = ""

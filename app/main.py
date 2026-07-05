@@ -21,6 +21,7 @@ async def lifespan(app: FastAPI):
     
     # Import modules to execute their event bus subscription registration decorators
     import app.agents.guardrails
+    import app.agents.ledger_persistence_agent
     import app.agents.reporting_agent
     
     logger.info("Event Bus structural agents registered successfully.")

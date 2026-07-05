@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Callable, Dict, List, Any, Awaitable
 
@@ -32,8 +31,8 @@ class EventBus:
 
     async def publish(self, event_name: str, payload: Dict[str, Any]) -> None:
         """
-        Publish an event to all subscribed callbacks concurrently.
-        Ensures a single failing subscriber does not collapse the entire broadcast.
+        Publish an event to all subscribed callbacks and await each one before returning.
+        This preserves shared payload consistency across subscribers that mutate state.
         """
         callbacks = self._subscribers.get(event_name, [])
         if not callbacks:
@@ -49,8 +48,8 @@ class EventBus:
                     exc_info=True
                 )
 
-        # Execute all callbacks concurrently using asyncio.gather
-        await asyncio.gather(*(_safe_execute(cb) for cb in callbacks))
+        for callback in callbacks:
+            await _safe_execute(callback)
 
 # Global instance of EventBus to be used across the application
 event_bus = EventBus()
